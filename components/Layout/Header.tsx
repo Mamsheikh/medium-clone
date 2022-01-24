@@ -1,6 +1,8 @@
+import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 function Header() {
+  const { data: session, status } = useSession();
   return (
     <header className='flex items-center justify-between p-5 max-w-7xl mx-auto'>
       <div className='flex items-center space-x-5'>
@@ -20,12 +22,28 @@ function Header() {
         </div>
       </div>
       <div className='flex items-center space-x-5 text-green-600'>
-        <Link href='/login'>
-          <a className=''>Sign In</a>
-        </Link>
-        <h3 className='border px-4 py-2 rounded-full border-green-600 xs:px-2 xs:py-1'>
-          Get Started
-        </h3>
+        {!session ? (
+          <>
+            <a onClick={() => signIn()} className=''>
+              Sign In
+            </a>
+            <h3 className='border px-4 py-2 rounded-full border-green-600 xs:px-2 xs:py-1'>
+              Get Started
+            </h3>
+          </>
+        ) : (
+          <>
+            <a onClick={() => signOut()} className=''>
+              Sign Out
+            </a>
+            {session && (
+              <img
+                src={session?.user?.image as string}
+                className='h-10 w-10 rounded-full'
+              />
+            )}
+          </>
+        )}
       </div>
     </header>
   );
