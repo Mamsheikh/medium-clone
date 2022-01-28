@@ -1,12 +1,16 @@
 import Link from 'next/link';
-import React from 'react';
+import React, { useRef } from 'react';
 import { IBlog } from '../../utils/types';
-
+// import * as ReactQuill from 'react-quill';
 interface IProps {
   blog: IBlog;
 }
 
+// const quil = ReactQuill();
+// export const quillRef = useRef<typeof quil>(null);
 const Preview: React.FC<IProps> = ({ blog }) => {
+  const editorRef = useRef(null);
+
   return (
     <div>
       <div className='max-w-sm rounded overflow-hidden shadow-lg'>
@@ -32,11 +36,7 @@ const Preview: React.FC<IProps> = ({ blog }) => {
 
         <div className='px-6 py-4'>
           <div className='font-bold text-xl mb-2'>{blog.title}</div>
-          <p className='text-gray-700 text-base'>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-            Voluptatibus quia, Nonea! Maiores et perferendis eaque,
-            exercitationem praesentium nihil.
-          </p>
+          <p className='text-gray-700 text-base'>{blog.content}</p>
         </div>
         {/* <p className='px-4'>{new Date(blog.createdAt).toLocaleString()}</p> */}
         <div className='px-6 pt-4 pb-2'>

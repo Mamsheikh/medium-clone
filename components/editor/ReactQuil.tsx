@@ -1,63 +1,84 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  Component,
+  useMemo,
+  useState,
+} from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import dynamic from 'next/dynamic';
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-// import * as ReactQuill from 'react-quill';
+// const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
+import { checkImage, imageUpload } from '../../utils/uploadImage';
+
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill');
+    return ({ forwardedRef, ...props }) => <RQ ref={forwardedRef} {...props} />;
+  },
+  { ssr: false }
+);
 
 interface IProps {
   setBody: (value: string) => void;
   body: string;
 }
+interface Props {
+  public_id: string;
+  url: string;
+}
+const Quill: React.FC<IProps> = ({ setBody, body }) => {
+  const [photo, setPhoto] = useState<Props>();
+  const notify = () => toast('Here is your toast.');
+  const editorRef = useRef();
 
-const Quill = () => {
-  const modules = { toolbar: { container } };
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+          [
+            { list: 'ordered' },
+            { list: 'bullet' },
+            { indent: '-1' },
+            { indent: '+1' },
+          ],
+          ['link', 'image'],
+          ['clean'],
+        ],
+      },
+    }),
+    []
+  );
 
-  // Custom image
-  //   const handleChangeImage = useCallback(() => {
-  //     const input = document.createElement('input')
-  //     input.type = "file"
-  //     input.accept = "image/*"
-  //     input.click()
+  const handleChangeImage = useCallback(() => {
+    console.log('change image');
+  }, []);
+  useEffect(() => {
+    const quill = editorRef.current.getEditor();
+    if (!quill) return;
 
-  //     input.onchange = async () => {
-  //       const files = input.files
-  //       if(!files) return dispatch({
-  //         type: ALERT, payload: { errors: 'File does not exist.'}
-  //       });
+    let toolbar = quill.getModule('toolbar');
+    toolbar.addHandler('image', handleChangeImage);
+  }, [handleChangeImage]);
 
-  //       const file = files[0]
-  //       const check = checkImage(file)
-  //       if(check) return dispatch({ type: ALERT, payload: { errors: check } });
-
-  //       dispatch({ type: ALERT, payload: { loading: true } })
-  //       const photo = await imageUpload(file)
-
-  //       const quill = quillRef.current;
-  //       const range = quill?.getEditor().getSelection()?.index
-  //       if(range !== undefined){
-  //         quill?.getEditor().insertEmbed(range, 'image', `${photo.url}`)
-  //       }
-
-  //       dispatch({ type: ALERT, payload: { loading: false } })
-  //     }
-  //   },[dispatch])
-
-  //   useEffect(() => {
-  //     const quill = quillRef.current;
-  //     if(!quill) return;
-
-  //     let toolbar = quill.getEditor().getModule('toolbar')
-  //     toolbar.addHandler('image', handleChangeImage)
-  //   },[handleChangeImage])
+  const handleChangeInput = (e: any) => {
+    console.log(e);
+  };
 
   return (
     <div>
+      <Toaster />
       <ReactQuill
         theme='snow'
         modules={modules}
         placeholder='Write somethings...'
-        // onChange={(e) => setBody(e)}
-        value='Write Something'
+        onChange={handleChangeInput}
+        value={body}
+        ref={editorRef}
+        // forwardedRef={editorRef}
       />
     </div>
   );
