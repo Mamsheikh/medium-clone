@@ -24,7 +24,7 @@ function Header() {
       <div className='flex items-center space-x-5 text-green-600'>
         {!session ? (
           <>
-            <a onClick={() => signIn()} className=''>
+            <a onClick={() => signIn()} className='cursor-pointer'>
               Sign In
             </a>
             <h3 className='border px-4 py-2 rounded-full border-green-600 xs:px-2 xs:py-1'>
@@ -33,13 +33,13 @@ function Header() {
           </>
         ) : (
           <>
-            <a onClick={() => signOut()} className=''>
+            <a onClick={() => signOut()} className='cursor-pointer'>
               Sign Out
             </a>
             {session && (
               <img
                 src={session?.user?.image as string}
-                className='h-10 w-10 rounded-full'
+                className='h-10 w-10 rounded-full cursor-pointer'
               />
             )}
           </>

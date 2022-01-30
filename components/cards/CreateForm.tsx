@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { IBlog, InputChange } from '../../utils/types';
+import { imageUpload } from '../../utils/uploadImage';
 
 interface IProps {
   blog: IBlog;
@@ -7,16 +9,28 @@ interface IProps {
 }
 
 const CreateForm: React.FC<IProps> = ({ blog, setBlog }) => {
+  const [url, setUrl] = useState();
   const handleChangeInput = (e: InputChange) => {
     const { value, name } = e.target;
     setBlog({ ...blog, [name]: value });
   };
+  async function upload(file) {
+    const photo = await imageUpload(file);
+    return photo.url;
+  }
   const handleImageUpload = (e: InputChange) => {
     const target = e.target as HTMLInputElement;
     const files = target.files;
     if (files) {
       const file = files[0];
-      setBlog({ ...blog, thumbnail: file });
+      toast.promise(
+        upload(file).then((url) => setBlog({ ...blog, thumbnail: url })),
+        {
+          loading: 'uploading🤞...',
+          success: 'Image uploaded successfully🎉',
+          error: 'Something went wrong!😥',
+        }
+      );
     }
   };
   return (
@@ -33,6 +47,18 @@ const CreateForm: React.FC<IProps> = ({ blog, setBlog }) => {
             onChange={handleChangeInput}
           />
           <small className='text-gray-300'>{blog.title.length}/50</small>
+        </div>
+        <div className='px-4 py-2'>
+          <label htmlFor=''>Description</label>
+          <input
+            placeholder='Description'
+            className='block w-full rounded-sm  focus:outline-none ring-0'
+            type='text'
+            value={blog.description}
+            name='description'
+            onChange={handleChangeInput}
+          />
+          <small className='text-gray-300'>{blog.description.length}/200</small>
         </div>
         <div className='px-4 py-2'>
           <label htmlFor=''>Category</label>

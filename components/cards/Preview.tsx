@@ -36,7 +36,7 @@ const Preview: React.FC<IProps> = ({ blog }) => {
 
         <div className='px-6 py-4'>
           <div className='font-bold text-xl mb-2'>{blog.title}</div>
-          <p className='text-gray-700 text-base'>{blog.content}</p>
+          <p className='text-gray-700 text-base'>{blog.description}</p>
         </div>
         {/* <p className='px-4'>{new Date(blog.createdAt).toLocaleString()}</p> */}
         <div className='px-6 pt-4 pb-2'>
