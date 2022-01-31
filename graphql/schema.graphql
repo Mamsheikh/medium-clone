@@ -2,11 +2,21 @@
 ### Do not make changes to this file directly
 
 
+type Comment {
+  content: String
+  id: String
+  postId: String
+  user: [User]
+  userId: String
+}
+
 type Mutation {
+  createComment(content: String!, postId: String!, userId: String!): Comment!
   createPost(category: String!, content: String!, thumbnail: String!, title: String!): Post!
 }
 
 type Post {
+  comments: [Comment]
   content: String
   id: String!
   thumbnail: String

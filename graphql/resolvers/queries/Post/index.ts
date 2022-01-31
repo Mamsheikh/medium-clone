@@ -6,7 +6,7 @@ export const GetAllPosts = extendType({
     t.list.field('posts', {
       type: 'Post',
       resolve(_, __, ctx) {
-        return ctx.prisma.post.findMany();
+        return ctx.prisma.post.findMany({ include: { comments: true } });
       },
     });
   },

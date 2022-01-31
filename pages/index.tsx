@@ -57,7 +57,7 @@ export default function Home({ posts }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const data = await prisma.post.findMany({
-    include: { user: true },
+    include: { user: true, comments: true },
   });
   const posts = JSON.parse(JSON.stringify(data));
 

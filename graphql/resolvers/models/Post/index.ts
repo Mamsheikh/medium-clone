@@ -17,6 +17,16 @@ export const Post = objectType({
             })
             .user();
         },
+      }),
+      t.list.field('comments', {
+        type: 'Comment',
+        resolve(parent, __, ctx) {
+          return ctx.prisma.post
+            .findUnique({
+              where: { id: parent.id },
+            })
+            .comments();
+        },
       });
   },
 });

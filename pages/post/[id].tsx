@@ -4,13 +4,59 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import prisma from '../../lib/prisma';
-import { Post } from '../../typings';
+import { Comment, Post } from '../../typings';
 import PortableText from 'react-portable-text';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import LiteQuill from '../../components/editor/LiteQuill';
+import { useRef, useState } from 'react';
+import { gql, useMutation } from '@apollo/client';
+import toast from 'react-hot-toast';
 
 interface Props {
   post: Post;
+  comments: Comment[];
 }
-function SignlePost({ post }: Props) {
+
+const CREATE_COMMENT_MUTATION = gql`
+  mutation CreateComment(
+    $postId: String!
+    $userId: String!
+    $content: String!
+  ) {
+    createComment(postId: $postId, userId: $userId, content: $content) {
+      id
+      content
+      postId
+      userId
+    }
+  }
+`;
+const SignlePost = ({ post, comments }: Props) => {
+  const [createComment] = useMutation(CREATE_COMMENT_MUTATION);
+  const [body, setBody] = useState('');
+  const divRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+  const handleSubmit = () => {
+    const div = divRef.current;
+    const text = div?.innerText as string;
+    if (!text.trim()) return;
+    toast.promise(
+      createComment({
+        variables: {
+          userId: post.userId,
+          postId: post.id,
+          content: text,
+        },
+      }),
+      {
+        loading: 'Creating comment...',
+        error: 'No comment',
+        success: 'Comment created successfull',
+      }
+    );
+    console.log({ content: text });
+  };
   return (
     <main>
       <Head>
@@ -49,9 +95,58 @@ function SignlePost({ post }: Props) {
         </div>
       </article>
       <hr className='max-w-lg my-5 mx-auto border border-yellow-500' />
+      <div className='flex flex-col p-5 max-w-2xl mx-auto mb-10'>
+        <h3 className='text-sm text-yellow-500'>Enjoyed this article?</h3>
+        <h3 className='text-3xl font-bold'>Leave a comment below!</h3>
+        <hr className='py-3 mt-2' />
+        {!session ? (
+          <h3>
+            <Link href={`/login`}>
+              <a className='text-blue-500'>Login</a>
+            </Link>{' '}
+            to leave a comment
+          </h3>
+        ) : (
+          <>
+            <LiteQuill body={body} setBody={setBody} />
+            <button
+              onClick={handleSubmit}
+              type='submit'
+              className=' mt-5 shadow bg-yellow-500 hover:bg-yellow-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer'
+            >
+              Comment
+            </button>
+            <div
+              ref={divRef}
+              dangerouslySetInnerHTML={{
+                __html: body,
+              }}
+            />
+          </>
+        )}
+      </div>
+      <div className='flex flex-col p-10 my-10 max-w-2xl mx-auto shadow shadow-yellow-500 space-y-2'>
+        <h3 className='text-4xl'>Comments</h3>
+        <hr className='pb-2' />
+        {comments.map((comment) => (
+          <div key={comment.id} className='flex'>
+            <img
+              className='h-10 w-10 rounded-full mr-4'
+              src={comment.user.image}
+              alt=''
+            />
+            <span className='text-yellow-500'>{comment.user.name}: </span>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: comment.content,
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </main>
   );
-}
+};
 
 export default SignlePost;
 
@@ -85,8 +180,12 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const data = await prisma.post.findUnique({
     where: { id: params.id as string },
-    include: { user: true },
+    include: { user: true, comments: true },
   }); // your fetch function here
+  const comments = await prisma.comment.findMany({
+    where: { postId: data.id },
+    include: { user: true },
+  });
   const post = JSON.parse(JSON.stringify(data));
   if (!post) {
     return {
@@ -96,6 +195,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post,
+      comments,
     },
     revalidate: 60,
   };

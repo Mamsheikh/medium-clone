@@ -15,13 +15,13 @@ export const createPostMutation = extendType({
       async resolve(_parent, args, ctx) {
         const req = ctx.req;
         const session = await getSession({ req });
-        console.log('email: ', session.user.email);
+        // console.log('email: ', session.user.email);
         const user = await ctx.prisma.user.findUnique({
           where: { email: session.user.email },
         });
         // console.log(user);
         if (args.title.length < 10) {
-          throw new Error('Title mush have atleast 10 characters.');
+          throw new Error('Title must have atleast 10 characters.');
         } else if (args.title.length > 50) {
           throw new Error('Title must not be more than 50 characters.');
         }
@@ -38,6 +38,40 @@ export const createPostMutation = extendType({
             user: { connect: { email: user.email } },
           },
         });
+      },
+    });
+  },
+});
+
+export const createCommentMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('createComment', {
+      type: 'Comment',
+      args: {
+        postId: nonNull(stringArg()),
+        userId: nonNull(stringArg()),
+        content: nonNull(stringArg()),
+      },
+      async resolve(parent, args, ctx) {
+        const req = ctx.req;
+        const session = await getSession({ req });
+        const user = await ctx.prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+        console.log({ user });
+        if (!user) {
+          throw new Error('not authenticated');
+        }
+        const comment = ctx.prisma.comment.create({
+          data: {
+            userId: user.id,
+            postId: args.postId,
+            content: args.content,
+            // user: { connect: { email: user.email } },
+          },
+        });
+        return comment;
       },
     });
   },
