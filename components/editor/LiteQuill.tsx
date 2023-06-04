@@ -22,7 +22,7 @@ const LiteQuill: React.FC<IProps> = ({ body, setBody }) => {
   return (
     <div>
       <ReactQuill
-        theme='snow'
+        //theme='snow'
         modules={modules}
         placeholder='Write somethings...'
         onChange={(e) => setBody(e)}
